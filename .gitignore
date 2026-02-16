@@ -4,3 +4,8 @@
 terraform.tfstate
 terraform.tfstate.backup
 
+*.exe
+*.zip
+*.tar.gz
+
+crash.log
