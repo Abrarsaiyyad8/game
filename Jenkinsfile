@@ -28,29 +28,25 @@ pipeline {
     }
 
 
-    stage('Tag Image') {
-      steps {
-        sh 'docker tag $IMAGE_NAME:latest $REPO_URI:latest'
-      }
-    }
+   stage('Deploy to EC2') {
+            steps {
+                sh '''
+                ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/game-key.pem ubuntu@43.205.216.241 << EOF
 
-    stage('Push Image') {
-      steps {
-        sh 'docker push $REPO_URI:latest'
-      }
-    }
+                aws ecr get-login-password --region $REGION | \
+                docker login --username AWS --password-stdin 956437851385.dkr.ecr.ap-south-1.amazonaws.com
 
- stage('Deploy to App Server') {
-      steps {
-        sh '''
-       ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/game-key.pem ubuntu@43.205.216.241 "
-        docker pull $REPO_URI:latest &&
-        docker stop game || true &&
-        docker rm game || true &&
-        docker run -d -p 80:80 --name game $REPO_URI:latest
-        "
-        '''
-      }
+                docker pull $REPO_URI:latest
+
+                docker stop game || true
+                docker rm game || true
+
+                docker run -d -p 80:80 --name game $REPO_URI:latest
+
+                EOF
+                '''
+            }
+        }
+
     }
-  }
 }
