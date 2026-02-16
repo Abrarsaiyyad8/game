@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tic Tac Toe: Apocalypse</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nosifer&family=Stardos+Stencil:wght@700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --zombie-green: #3dff00;
+            --human-gold: #ffcc00;
+            --blood-red: #8a0303; 
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            height: 100vh;
+            background: linear-gradient(rgba(0, 0, 0, 0.75), rgba(0, 0, 0, 0.75)), 
+                        url('https://images.unsplash.com/photo-1478720568477-152d9b164e26?auto=format&fit=crop&q=80&w=2070');
+            background-size: cover;
+            background-position: center;
+            overflow: hidden;
+            font-family: 'Arial', sans-serif;
+            color: white;
+            animation: backgroundFlicker 10s infinite;
+        }
+
+        /* Screen Shake Animation */
+        @keyframes shake {
+            0% { transform: translate(0, 0); }
+            10% { transform: translate(-10px, -10px); }
+            20% { transform: translate(10px, 5px); }
+            30% { transform: translate(-5px, 10px); }
+            40% { transform: translate(5px, -5px); }
+            50% { transform: translate(-10px, 5px); }
+            100% { transform: translate(0, 0); }
+        }
+
+        .shaking { animation: shake 0.4s ease-in-out; }
+
+        @keyframes backgroundFlicker {
+            0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% { filter: brightness(1); }
+            20%, 22%, 24%, 55% { filter: brightness(1.3) contrast(1.1); }
+        }
+
+        .game-header {
+            position: absolute;
+            top: 20px;
+            width: 100%;
+            text-align: center;
+            z-index: 20;
+        }
+
+        .game-title {
+            font-family: 'Nosifer', cursive;
+            font-size: 5rem;
+            letter-spacing: 10px;
+            background: linear-gradient(to right, var(--zombie-green), #fff, var(--human-gold));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 0 15px rgba(0,0,0,0.9));
+            margin-bottom: 5px;
+        }
+
+        .game-subtitle {
+            font-family: 'Stardos Stencil', cursive;
+            font-size: 2.2rem;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            filter: drop-shadow(0 0 10px rgba(0,0,0,1));
+        }
+
+        /* Team Colors for Subtitle */
+        .txt-zombie { color: var(--zombie-green); text-shadow: 0 0 10px rgba(61, 255, 0, 0.5); }
+        .txt-vs { color: white; font-size: 1.5rem; margin: 0 10px; }
+        .txt-human { color: var(--human-gold); text-shadow: 0 0 10px rgba(255, 204, 0, 0.5); }
+
+        .war-zone {
+            display: flex;
+            width: 100%;
+            height: 100%;
+        }
+
+        .army-side {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .zombies {
+            background: linear-gradient(to right, rgba(0,255,0,0.1), transparent);
+            border-right: 1px solid rgba(61, 255, 0, 0.2);
+        }
+
+        .humans {
+            background: linear-gradient(to left, rgba(255,150,0,0.15), transparent);
+            border-left: 1px solid rgba(255, 204, 0, 0.2);
+        }
+
+        .character {
+            position: absolute;
+            filter: drop-shadow(0 0 15px rgba(0,0,0,1));
+            animation: breathe 4s ease-in-out infinite alternate;
+            user-select: none;
+        }
+
+        /* CHARACTER POSITIONS */
+        .z1 { left: 5%; top: 20%; font-size: 80px; }
+        .z2 { left: 22%; top: 35%; font-size: 90px; }
+        .z3 { left: 8%; top: 55%; font-size: 70px; }
+        .z4 { left: 32%; top: 60%; font-size: 85px; }
+        .z5 { left: 12%; top: 80%; font-size: 75px; }
+        .z6 { left: 40%; top: 15%; font-size: 65px; }
+        .z7 { left: 2%; top: 40%; font-size: 70px; }
+        .z8 { left: 30%; top: 80%; font-size: 70px; }
+        .z9 { left: 18%; top: 12%; font-size: 60px; }
+        .z10 { left: 42%; top: 45%; font-size: 75px; }
+
+        .h-char { filter: drop-shadow(0 0 20px rgba(255, 165, 0, 0.4)); }
+        .h1 { right: 10%; top: 22%; font-size: 85px; }
+        .h2 { right: 28%; top: 35%; font-size: 70px; }
+        .h3 { right: 15%; top: 58%; font-size: 80px; }
+        .h4 { right: 38%; top: 18%; font-size: 65px; }
+        .h5 { right: 45%; top: 50%; font-size: 75px; }
+        .h6 { right: 10%; top: 78%; font-size: 80px; }
+        .h7 { right: 32%; top: 72%; font-size: 70px; }
+        .h8 { right: 22%; top: 8%; font-size: 60px; }
+
+        @keyframes breathe {
+            from { transform: translateY(0) scale(1); }
+            to { transform: translateY(-10px) scale(1.05); }
+        }
+
+        .ui-overlay {
+            position: absolute;
+            top: 55%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 30;
+            text-align: center;
+            width: 450px;
+        }
+
+        .vs-circle {
+            background: rgba(0,0,0,0.9);
+            border: 3px solid #fff;
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Nosifer', cursive;
+            font-size: 2rem;
+            margin: 0 auto 20px;
+        }
+
+        .start-btn {
+            background: var(--blood-red);
+            color: white;
+            font-family: 'Stardos Stencil', cursive;
+            font-size: 2.5rem;
+            padding: 15px 60px;
+            border: 4px solid white;
+            border-radius: 50px;
+            cursor: pointer;
+            width: 100%;
+            transition: 0.3s;
+        }
+
+        .start-btn:hover { background: white; color: var(--blood-red); }
+    </style>
+</head>
+<body>
+
+    <header class="game-header">
+        <h1 class="game-title">TIC TAC TOE</h1>
+        <h2 class="game-subtitle">
+            <span class="txt-zombie">Zombies</span>
+            <span class="txt-vs">vs</span>
+            <span class="txt-human">Humans</span>
+        </h2>
+    </header>
+
+    <div class="war-zone" id="warZone">
+        <section class="army-side zombies">
+            <div class="character z1">🧟</div><div class="character z2">🧟‍♂️</div>
+            <div class="character z3">🧟‍♀️</div><div class="character z4">🧟</div>
+            <div class="character z5">🧟‍♂️</div><div class="character z6">🧟‍♀️</div>
+            <div class="character z7">🧟‍♂️</div><div class="character z8">🧟</div>
+            <div class="character z9">🧟‍♀️</div><div class="character z10">🧟‍♂️</div>
+        </section>
+
+        <section class="army-side humans">
+            <div class="character h-char h1">🙍🏻</div><div class="character h-char h2">🙍🏻</div>
+            <div class="character h-char h3">🙍🏻</div><div class="character h-char h4">🙍🏻</div>
+            <div class="character h-char h5">🙍🏻</div><div class="character h-char h6">🙍🏻</div>
+            <div class="character h-char h7">🙍🏻</div><div class="character h-char h8">🙍🏼</div>
+        </section>
+    </div>
+
+    <div class="ui-overlay">
+        <div class="vs-circle">VS</div>
+        <button class="start-btn" onclick="startGame()">Start Game</button>
+    </div>
+
+    <script>
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        
+        function playClashSound() {
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            oscillator.type = 'square';
+            oscillator.frequency.setValueAtTime(150, audioCtx.currentTime);
+            oscillator.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + 0.4);
+            gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            oscillator.start();
+            oscillator.stop(audioCtx.currentTime + 0.4);
+        }
+
+        function startGame() {
+            const btn = document.querySelector('.start-btn');
+            const warZone = document.getElementById('warZone');
+            
+
+            setTimeout(() => {
+                warZone.classList.remove('shaking');
+                btn.innerHTML = "START GAME";                   
+                window.location.href = "game.html";
+                }, 1000);
+        }
+    </script>
+</body>
+</html>
