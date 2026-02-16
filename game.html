@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Apocalypse: Battle for the Playground</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Courier New', monospace;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), 
+                url('town.jpg');
+            background-size: cover;
+            background-position: center;
+            color: white;
+        }
+
+        #blood-center {
+            position: fixed;
+            top: 50%; left: 50%;
+            width: 0px; height: 0px;
+            background: radial-gradient(circle, rgba(160, 0, 0, 0.95) 0%, rgba(80, 0, 0, 0.8) 40%, rgba(0,0,0,0) 75%);
+            transform: translate(-50%, -50%);
+            z-index: 1;
+            transition: width 4s ease-out, height 4s ease-out;
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .army-row {
+            display: grid;
+            grid-template-columns: repeat(10, 1fr);
+            gap: 15px;
+            width: 95%;
+            z-index: 5;
+            position: absolute;
+        }
+
+        #zombie-army { top: 20px; }
+        #human-army { bottom: 20px; }
+
+        .unit { 
+            font-size: 40px; 
+            transition: all 1.2s cubic-bezier(0.5, 0, 0.5, 1);
+            animation: move 3s infinite ease-in-out;
+            display: inline-block;
+        }
+
+        @keyframes move {
+            0%, 100% { transform: translateY(0) rotate(-3deg); }
+            50% { transform: translateY(-8px) rotate(3deg); }
+        }
+
+        #game-container {
+            position: relative;
+            z-index: 10;
+            background: rgba(0, 0, 0, 0.85);
+            padding: 20px;
+            border-radius: 15px;
+            border: 4px solid #444;
+            box-shadow: 0 0 50px #000;
+        }
+
+        #status {
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 5px;
+            margin-bottom: 15px;
+            font-size: 1.5rem;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(3, 100px);
+            grid-template-rows: repeat(3, 100px);
+            gap: 8px;
+        }
+
+        .cell {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 60px;
+            cursor: pointer;
+            background: rgba(255,255,255,0.05);
+            border: 2px solid #555;
+            width: 100px;
+            height: 100px;
+        }
+
+        .cell:hover { background: rgba(255,255,255,0.15); }
+
+        .final-msg {
+            position: fixed;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 60px;
+            text-align: center;
+            background: rgba(0,0,0,0.98);
+            padding: 60px;
+            border: 10px double red;
+            display: none;
+            z-index: 1000;
+            width: 100%;
+            font-weight: bold;
+        }
+
+        .firecracker {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            z-index: 999;
+            pointer-events: none;
+            animation: explode 1s ease-out forwards;
+        }
+
+        @keyframes explode {
+            0% { transform: translate(0, 0) scale(1); opacity: 1; }
+            100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; }
+        }
+
+        .horde-unit {
+            position: absolute;
+            font-size: 50px;
+            z-index: 999;
+            animation: swarm 2s infinite;
+        }
+
+        .joy-unit {
+            position: absolute;
+            font-size: 60px;
+            z-index: 1001;
+            animation: swarm 1.5s infinite ease-in-out;
+        }
+
+        @keyframes swarm {
+            0% { transform: scale(1) translateY(0); }
+            50% { transform: scale(1.3) translateY(-20px); }
+            100% { transform: scale(1) translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="blood-center"></div>
+    <div id="msg" class="final-msg"></div>
+
+    <div id="zombie-army" class="army-row"></div>
+    <div id="human-army" class="army-row"></div>
+
+    <div id="game-container">
+        <h2 id="status">Your Turn</h2>
+        <div class="grid" id="board">
+            <div class="cell" data-index="0"></div>
+            <div class="cell" data-index="1"></div>
+            <div class="cell" data-index="2"></div>
+            <div class="cell" data-index="3"></div>
+            <div class="cell" data-index="4"></div>
+            <div class="cell" data-index="5"></div>
+            <div class="cell" data-index="6"></div>
+            <div class="cell" data-index="7"></div>
+            <div class="cell" data-index="8"></div>
+        </div>
+    </div>
+
+<script>
+    const cells = document.querySelectorAll('.cell');
+    const statusTxt = document.getElementById('status');
+    const zombieArmy = document.getElementById('zombie-army');
+    const humanArmy = document.getElementById('human-army');
+    const bloodCenter = document.getElementById('blood-center');
+    const msg = document.getElementById('msg');
+    const gameContainer = document.getElementById('game-container');
+
+    let currentPlayer = '👨‍🌾'; 
+    let gameState = ["", "", "", "", "", "", "", "", ""];
+    let gameActive = true;
+
+    function createArmies() {
+        zombieArmy.innerHTML = '';
+        humanArmy.innerHTML = '';
+        for(let i=0; i<30; i++) {
+            zombieArmy.innerHTML += `<div class="unit zombie">🧟</div>`;
+            humanArmy.innerHTML += `<div class="unit human">👨‍🌾</div>`;
+        }
+    }
+
+    createArmies();
+
+    const winConditions = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+
+    function createFirecracker(x, y) {
+        for (let i = 0; i < 20; i++) {
+            const p = document.createElement('div');
+            p.className = 'firecracker';
+            p.style.left = x + 'px';
+            p.style.top = y + 'px';
+            p.style.backgroundColor = `hsl(${Math.random() * 360}, 100%, 50%)`;
+            p.style.setProperty('--tx', (Math.random() - 0.5) * 300 + 'px');
+            p.style.setProperty('--ty', (Math.random() - 0.5) * 300 + 'px');
+            document.body.appendChild(p);
+            setTimeout(() => p.remove(), 1000);
+        }
+    }
+
+    function handleCellClick(e) {
+        const index = e.target.getAttribute('data-index');
+        if (gameState[index] !== "" || !gameActive || currentPlayer !== '👨‍🌾') return;
+        
+        makeMove(index);
+
+        if (gameActive) {
+            zombieAI();
+        }
+    }
+
+    function zombieAI() {
+        if (!gameActive) return;
+
+        let bestScore = -Infinity;
+        let moveIndex = -1;
+
+        // Minimax Search for Best Move
+        for (let i = 0; i < 9; i++) {
+            if (gameState[i] === "") {
+                gameState[i] = '🧟';
+                let score = minimax(gameState, 0, false);
+                gameState[i] = "";
+                if (score > bestScore) {
+                    bestScore = score;
+                    moveIndex = i;
+                }
+            }
+        }
+
+        if (moveIndex !== -1) {
+            makeMove(moveIndex);
+        }
+    }
+
+    function minimax(board, depth, isMaximizing) {
+        let result = checkWinnerForAI();
+        if (result === '🧟') return 10 - depth;
+        if (result === '👨‍🌾') return depth - 10;
+        if (!board.includes("")) return 0;
+
+        if (isMaximizing) {
+            let bestScore = -Infinity;
+            for (let i = 0; i < 9; i++) {
+                if (board[i] === "") {
+                    board[i] = '🧟';
+                    let score = minimax(board, depth + 1, false);
+                    board[i] = "";
+                    bestScore = Math.max(score, bestScore);
+                }
+            }
+            return bestScore;
+        } else {
+            let bestScore = Infinity;
+            for (let i = 0; i < 9; i++) {
+                if (board[i] === "") {
+                    board[i] = '👨‍🌾';
+                    let score = minimax(board, depth + 1, true);
+                    board[i] = "";
+                    bestScore = Math.min(score, bestScore);
+                }
+            }
+            return bestScore;
+        }
+    }
+
+    function checkWinnerForAI() {
+        for (let condition of winConditions) {
+            const [a, b, c] = condition;
+            if (gameState[a] !== "" && gameState[a] === gameState[b] && gameState[a] === gameState[c]) {
+                return gameState[a];
+            }
+        }
+        return null;
+    }
+
+    function makeMove(index) {
+        gameState[index] = currentPlayer;
+        cells[index].innerText = currentPlayer;
+        checkResult();
+        
+        if (gameActive) {
+            currentPlayer = currentPlayer === '🧟' ? '👨‍🌾' : '🧟';
+            statusTxt.innerText = currentPlayer === '👨‍🌾' ? "Your Turn" : "Zombie's Turn";
+        }
+    }
+
+    function checkResult() {
+        let roundWon = false;
+        let winner = "";
+        for (let condition of winConditions) {
+            if (gameState[condition[0]] === gameState[condition[1]] && 
+                gameState[condition[1]] === gameState[condition[2]] && 
+                gameState[condition[0]] !== "") {
+                roundWon = true;
+                winner = gameState[condition[0]];
+                break;
+            }
+        }
+
+        if (roundWon) {
+            gameActive = false;
+            gameContainer.style.display = 'none';
+            winner === '🧟' ? triggerZombieWin() : triggerHumanWin();
+            setTimeout(resetGame, 8000); 
+            return;
+        }
+
+        if (!gameState.includes("")) {
+            gameActive = false;
+            msg.innerHTML = "DRAW ZOMBIES WILL BE BACK";
+            msg.style.display = "block";
+            msg.style.color = "orange";
+            msg.style.borderColor = "orange";
+            setTimeout(resetGame, 4000);
+            return;
+        }
+    }
+
+    function triggerZombieWin() {
+        bloodCenter.style.width = "300vw";
+        bloodCenter.style.height = "300vh";
+        document.querySelectorAll('.zombie').forEach((z, i) => {
+            setTimeout(() => { 
+                z.style.transform = `translateY(${window.innerHeight * 0.45}px) scale(2)`; 
+            }, i * 10);
+        });
+        document.querySelectorAll('.human').forEach((h, i) => {
+            setTimeout(() => { 
+                h.innerText = "🧟";
+                h.style.color = "green";
+                h.style.transform = "scale(1.5)";
+            }, 800 + (i * 10));
+        });
+        for(let i=0; i<40; i++) {
+            setTimeout(() => {
+                const swarm = document.createElement('div');
+                swarm.className = 'horde-unit';
+                swarm.innerText = '🧟';
+                swarm.style.left = Math.random() * 100 + 'vw';
+                swarm.style.top = Math.random() * 100 + 'vh';
+                document.body.appendChild(swarm);
+            }, 1200 + (i * 40));
+        }
+        setTimeout(() => {
+            msg.innerHTML = "ZOMBAIES TAKE OVER THE WORLD";
+            msg.style.display = "block";
+            msg.style.color = "red";
+            msg.style.borderColor = "red";
+        }, 1200);
+    }
+
+    function triggerHumanWin() {
+        document.querySelectorAll('.human').forEach((h, i) => {
+            setTimeout(() => { 
+                h.style.transform = `translateY(-${window.innerHeight * 0.8}px) scale(2.5)`; 
+            }, i * 10);
+        });
+
+        document.querySelectorAll('.zombie').forEach((z, i) => {
+            setTimeout(() => { 
+                z.innerText = "💀";
+                z.style.opacity = "0";
+                z.style.transform = "scale(0.1)";
+            }, 400 + (i * 15));
+        });
+
+        setTimeout(() => {
+            for(let i=0; i<50; i++) {
+                setTimeout(() => {
+                    const joy = document.createElement('div');
+                    joy.className = 'joy-unit';
+                    joy.innerText = '👨‍🌾';
+                    joy.style.left = Math.random() * 100 + 'vw';
+                    joy.style.top = Math.random() * 100 + 'vh';
+                    document.body.appendChild(joy);
+                    createFirecracker(parseInt(joy.style.left) * window.innerWidth / 100, parseInt(joy.style.top) * window.innerHeight / 100);
+                }, i * 50);
+            }
+        }, 1000);
+
+        setTimeout(() => {
+            msg.innerHTML = "YOU SAVED THE WORLD!"
+            msg.style.display = "block";
+            msg.style.color = "#00ff00";
+            msg.style.borderColor = "#00ff00";
+            msg.style.textShadow = "0 0 20px #00ff00";
+        }, 1500);
+    }
+
+    function resetGame() {
+        document.querySelectorAll('.horde-unit, .joy-unit, .firecracker').forEach(u => u.remove());
+        gameState = ["", "", "", "", "", "", "", "", ""];
+        gameActive = true;
+        currentPlayer = '👨‍🌾';
+        statusTxt.innerText = "Your Turn";
+        msg.style.display = "none";
+        gameContainer.style.display = 'block';
+        bloodCenter.style.width = "0px";
+        bloodCenter.style.height = "0px";
+        cells.forEach(cell => cell.innerText = "");
+        createArmies();
+    }
+
+    cells.forEach(cell => cell.addEventListener('click', handleCellClick));
+</script>
+</body>
+</html>
