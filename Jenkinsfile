@@ -40,22 +40,19 @@ pipeline {
         }
 
         stage('Deploy to App Server') {
-            steps {
-                sh '''
-                ssh -o StrictHostKeyChecking=no -i ${SSH_KEY} ${APP_SERVER} << EOF
-                set -e
+    steps {
+        sh '''
+ssh -o StrictHostKeyChecking=no -i ${SSH_KEY} ${APP_SERVER} << EOF
+set -e
 
-                aws ecr get-login-password --region ${AWS_REGION} | \
-                docker login --username AWS --password-stdin ${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com
+aws ecr get-login-password --region ${AWS_REGION} | \
+docker login --username AWS --password-stdin ${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com
 
-                docker pull ${REPO_URI}:latest
-                docker rm -f game || true
-                docker run -d -p 80:80 --name game ${REPO_URI}:latest
+docker pull ${REPO_URI}:latest
+docker rm -f game || true
+docker run -d -p 80:80 --name game ${REPO_URI}:latest
 
-                EOF
-                '''
-            }
-        }
-
+EOF
+'''
     }
 }
