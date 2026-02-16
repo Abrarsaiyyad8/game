@@ -1,11 +1,9 @@
-.terraform/
+# Terraform cache (NEVER COMMIT)
+**/.terraform/*
+*.tfstate
+*.tfstate.*
 .terraform.lock.hcl
 
-terraform.tfstate
-terraform.tfstate.backup
-
+# Binary files
 *.exe
-*.zip
-*.tar.gz
 
-crash.log
