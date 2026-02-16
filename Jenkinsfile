@@ -18,21 +18,14 @@ pipeline {
       }
     }
 
-    stage('Login to ECR') {
-  steps {
-    withCredentials([[
-      $class: 'AmazonWebServicesCredentialsBinding',
-      credentialsId: 'aws-creds'
-    ]]) {
-      sh '''
-      ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
-
-      aws ecr get-login-password --region ap-south-1 \
-      | docker login --username AWS --password-stdin $ACCOUNT_ID.dkr.ecr.ap-south-1.amazonaws.com
-      '''
+   stage('Login to ECR') {
+      steps {
+        sh '''
+        aws ecr get-login-password --region $AWS_REGION \
+        | docker login --username AWS --password-stdin $REPO_URI
+        '''
+      }
     }
-  }
-}
 
 
     stage('Tag Image') {
