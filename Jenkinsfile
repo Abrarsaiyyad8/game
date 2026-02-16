@@ -40,20 +40,17 @@ pipeline {
       }
     }
 
-   stage('Deploy to App Server') {
-  steps {
-    sh '''
-    ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/game-key.pem ubuntu@43.205.216.241 "
-
-    aws ecr get-login-password --region ap-south-1 \
-    | docker login --username AWS --password-stdin 956437851385.dkr.ecr.ap-south-1.amazonaws.com &&
-
-    docker pull 956437851385.dkr.ecr.ap-south-1.amazonaws.com/browser-game:latest &&
-    docker stop game || true &&
-    docker rm game || true &&
-    docker run -d -p 80:80 --name game 956437851385.dkr.ecr.ap-south-1.amazonaws.com/browser-game:latest
-    "
-    '''
+ stage('Deploy to App Server') {
+      steps {
+        sh '''
+        ssh -o StrictHostKeyChecking=no -i game-key ubuntu@43.205.216.241 "
+        docker pull $REPO_URI:latest &&
+        docker stop game || true &&
+        docker rm game || true &&
+        docker run -d -p 80:80 --name game $REPO_URI:latest
+        "
+        '''
+      }
+    }
   }
 }
-
