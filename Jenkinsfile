@@ -43,7 +43,7 @@ pipeline {
  stage('Deploy to App Server') {
       steps {
         sh '''
-        ssh -o StrictHostKeyChecking=no -i game-key ubuntu@43.205.216.241 "
+       ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/game-key ubuntu@43.205.216.241 "
         docker pull $REPO_URI:latest &&
         docker stop game || true &&
         docker rm game || true &&
