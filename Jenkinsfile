@@ -10,11 +10,7 @@ pipeline {
 
   stages {
 
-    stage('Checkout') {
-      steps {
-        git 'https://github.com/Abrarsaiyyad8/game.git'
-      }
-    }
+  
 
     stage('Build Image') {
       steps {
