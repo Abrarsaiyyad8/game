@@ -40,8 +40,8 @@ pipeline {
         }
 
         stage('Deploy to App Server') {
-    steps {
-        sh '''
+            steps {
+                sh '''
 ssh -o StrictHostKeyChecking=no -i ${SSH_KEY} ${APP_SERVER} << EOF
 set -e
 
@@ -54,5 +54,8 @@ docker run -d -p 80:80 --name game ${REPO_URI}:latest
 
 EOF
 '''
-    }
-}
+            }
+        }
+
+    }   // ← closes stages
+}       // ← closes pipeline
