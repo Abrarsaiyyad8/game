@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Virus Containment | Sector India</title>
+    <style>
+        :root {
+            --terminal-green: #00ff41;
+            --warning-red: #ff0000;
+            --dark-bg: #050505;
+        }
+
+        body, html {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            font-family: 'Courier New', Courier, monospace;
+            background-color: var(--dark-bg);
+            color: white;
+            overflow: hidden;
+            cursor: crosshair;
+        }
+
+        /* Surveillance Header */
+        #counter-header {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background: rgba(139, 0, 0, 0.9);
+            color: white;
+            text-align: center;
+            padding: 12px 0;
+            font-weight: bold;
+            z-index: 100;
+            border-bottom: 2px solid var(--warning-red);
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+        }
+
+        #count { 
+            color: var(--terminal-green); 
+            font-size: 1.3em; 
+            text-shadow: 0 0 5px var(--terminal-green);
+        }
+
+        /* Radar Surveillance Background */
+        .radar-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            background: radial-gradient(circle, #1a0000 0%, #000 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .radar {
+            position: absolute;
+            width: 200vmax;
+            height: 200vmax;
+            background: conic-gradient(
+                from 0deg, 
+                transparent 70%, 
+                rgba(0, 255, 65, 0.3) 95%, 
+                rgba(0, 255, 65, 0.5) 100%
+            );
+            animation: rotate-radar 4s linear infinite;
+            pointer-events: none;
+        }
+
+        @keyframes rotate-radar {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* Survivor Registration Form */
+        .form-overlay {
+            background: rgba(0, 0, 0, 0.9);
+            border: 2px solid var(--warning-red);
+            padding: 30px;
+            width: 350px;
+            margin: 140px auto;
+            position: relative;
+            z-index: 101;
+            box-shadow: 0 0 30px rgba(255, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+        }
+
+        .form-overlay h2 { 
+            text-align: center; 
+            color: var(--warning-red); 
+            margin-top: 0; 
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .form-overlay label {
+            display: block;
+            margin-top: 15px;
+            font-size: 0.9em;
+            color: #aaa;
+            text-transform: uppercase;
+        }
+
+        .form-overlay input {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            background: #0a0a0a;
+            border: 1px solid var(--warning-red);
+            color: var(--terminal-green);
+            box-sizing: border-box;
+            outline: none;
+            font-family: 'Courier New', monospace;
+        }
+
+        .form-overlay input:focus {
+            border-color: var(--terminal-green);
+            box-shadow: 0 0 10px rgba(0, 255, 65, 0.2);
+        }
+
+        .form-overlay button {
+            width: 100%;
+            padding: 15px;
+            background: var(--warning-red);
+            color: black;
+            font-weight: 900;
+            cursor: pointer;
+            border: none;
+            margin-top: 20px;
+            text-transform: uppercase;
+            transition: 0.3s;
+        }
+
+        .form-overlay button:hover {
+            background: var(--terminal-green);
+            box-shadow: 0 0 20px var(--terminal-green);
+        }
+
+        .scanline {
+            width: 100%;
+            height: 2px;
+            background: rgba(0, 255, 65, 0.1);
+            position: fixed;
+            z-index: 102;
+            top: 0;
+            animation: scan 3s linear infinite;
+            pointer-events: none;
+        }
+
+        @keyframes scan {
+            0% { top: 0; }
+            100% { top: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="scanline"></div>
+
+    <div id="counter-header">
+        ⚠️ ZOMBIES DETECTED IN INDIA: <span id="count">48,201</span>
+    </div>
+
+    <div class="radar-bg">
+        <div class="radar"></div>
+    </div>
+
+    <div class="form-overlay">
+        <h2>Enter Zone</h2>
+        <form id="entry-form">
+            <label>Name</label>
+            <input type="text" placeholder="" required>
+
+            <label>Email</label>
+            <input type="email" placeholder="" required>
+
+            <label>City</label>
+            <input type="text" placeholder="" required>
+
+            <button type="submit">ENTER BATTLE</button>
+        </form>
+    </div>
+
+    <script>
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        
+        function playPing() {
+            if (audioCtx.state === 'suspended') return;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(880, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(110, audioCtx.currentTime + 0.5);
+            gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.5);
+        }
+
+        let zombieCount = 48201;
+        const countDisplay = document.getElementById('count');
+
+        setInterval(() => {
+            zombieCount += Math.floor(Math.random() * 5) + 1;
+            countDisplay.innerText = zombieCount.toLocaleString();
+            playPing();
+        }, 4000);
+
+        const entryForm = document.getElementById('entry-form');
+        entryForm.onsubmit = (e) => {
+            e.preventDefault();
+             window.location.href = "front_page.html"; 
+        };
+        
+
+        window.addEventListener('mousedown', () => {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+        });
+    </script>
+</body>
+</html>
