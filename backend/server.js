@@ -45,7 +45,6 @@ app.post("/score", async (req, res) => {
         name: name,
         email: email,
         city: city,
-        score: score || 0,
         createdAt: new Date().toISOString(),
       },
     };
