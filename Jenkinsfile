@@ -60,9 +60,9 @@ pipeline {
             }
         }
 
-      stage('Deploy to App Server') {
-    steps {
-        sh '''
+        stage('Deploy to App Server') {
+            steps {
+                sh '''
 ssh -o StrictHostKeyChecking=no -i ${SSH_KEY} ${APP_SERVER} << EOF
 set -e
 
@@ -78,7 +78,7 @@ echo "Stopping old containers..."
 docker rm -f game-frontend || true
 docker rm -f game-backend || true
 
-echo "Starting backend container (WITH IAM SUPPORT)..."
+echo "Starting backend container (IAM ENABLED)..."
 docker run -d \
 --network host \
 -e AWS_REGION=${AWS_REGION} \
@@ -91,5 +91,8 @@ docker run -d -p 80:80 --name game-frontend ${FRONTEND_URI}:latest
 echo "Deployment Complete!"
 EOF
 '''
+            }
+        }
+
     }
 }
