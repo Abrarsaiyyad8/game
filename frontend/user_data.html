@@ -173,18 +173,19 @@
 
     <div class="form-overlay">
         <h2>Enter Zone</h2>
-        <form id="entry-form">
-            <label>Name</label>
-            <input type="text" placeholder="" required>
+      <form id="entry-form">
+    <label for="name">Name</label>
+    <input id="name" name="name" type="text" required>
 
-            <label>Email</label>
-            <input type="email" placeholder="" required>
+    <label for="email">Email</label>
+    <input id="email" name="email" type="email" required>
 
-            <label>City</label>
-            <input type="text" placeholder="" required>
+    <label for="city">City</label>
+    <input id="city" name="city" type="text" required>
 
-            <button type="submit">ENTER BATTLE</button>
-        </form>
+    <button type="submit">ENTER BATTLE</button>
+</form>
+
     </div>
 
     <script>
@@ -219,16 +220,24 @@
 entryForm.addEventListener("submit", async (e) => {
     e.preventDefault();
 
-    // Get values using IDs (stable way)
     const name = document.getElementById("name").value.trim();
     const email = document.getElementById("email").value.trim();
     const city = document.getElementById("city").value.trim();
 
-    // Validate fields
     if (!name || !email || !city) {
-        alert("All fields are required!");
+        alert("Please fill all fields");
         return;
     }
+
+    const payload = {
+        userId: email,   // 🔥 REQUIRED for DynamoDB
+        name: name,
+        email: email,
+        city: city,
+        score: 0
+    };
+
+    console.log("Sending payload:", payload);
 
     try {
         const response = await fetch("http://43.205.216.241:3000/score", {
@@ -236,74 +245,24 @@ entryForm.addEventListener("submit", async (e) => {
             headers: {
                 "Content-Type": "application/json"
             },
-            body: JSON.stringify({
-                userId: email,   // 🔥 DynamoDB Partition Key (REQUIRED)
-                name: name,
-                email: email,
-                city: city,
-                score: 0         // optional (if backend expects score)
-            })
+            body: JSON.stringify(payload)
         });
 
-        if (!response.ok) {
-            throw new Error("Backend error");
+        const data = await response.json();
+        console.log("Server Response:", data);
+
+        if (response.ok) {
+            // ✅ Redirect ONLY after DynamoDB save success
+            window.location.href = "/front_page.html";
+        } else {
+            alert("Failed to save data");
         }
 
-        const data = await response.json();
-        console.log("Saved to DynamoDB:", data);
-
-        // Redirect AFTER successful save
-        window.location.href = "/front_page.html";
-
-    } catch (err) {
-        console.error("Submission Failed:", err);
-        alert("Server not reachable. Please try again.");
+    } catch (error) {
+        console.error("Connection Error:", error);
+        alert("Backend not reachable");
     }
 });
-const entryForm = document.getElementById("entry-form");
-
-entryForm.addEventListener("submit", async (e) => {
-    e.preventDefault();
-
-    // Get values using IDs (stable way)
-    const name = document.getElementById("name").value.trim();
-    const email = document.getElementById("email").value.trim();
-    const city = document.getElementById("city").value.trim();
-
-    // Validate fields
-    if (!name || !email || !city) {
-        alert("All fields are required!");
-        return;
-    }
-
-    try {
-        const response = await fetch("http://43.205.216.241:3000/score", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                userId: email,   // 🔥 DynamoDB Partition Key (REQUIRED)
-                name: name,
-                email: email,
-                city: city,
-                score: 0         // optional (if backend expects score)
-            })
-        });
-
-        if (!response.ok) {
-            throw new Error("Backend error");
-        }
-
-        const data = await response.json();
-        console.log("Saved to DynamoDB:", data);
-
-        // Redirect AFTER successful save
-        window.location.href = "/front_page.html";
-
-    } catch (err) {
-        console.error("Submission Failed:", err);
-        alert("Server not reachable. Please try again.");
-    }
-});
-
+</script>
+</body>
+</html>
