@@ -1,5 +1,5 @@
 # Use official Node image
-FROM node:20-alpine
+FROM node:24
 
 # Set working directory inside container
 WORKDIR /backend
