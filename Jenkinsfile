@@ -15,12 +15,6 @@ pipeline {
         SSH_KEY    = "/var/lib/jenkins/.ssh/game-key.pem"
     }
 
-    stages {
-        stage('Checkout Code') {
-            steps {
-                git 'https://github.com/Abrarsaiyyad8/game.git'
-            }
-        }
 
         stage('Build Frontend Image') {
             steps {
