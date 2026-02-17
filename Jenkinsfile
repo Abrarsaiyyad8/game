@@ -15,6 +15,7 @@ pipeline {
         SSH_KEY    = "/var/lib/jenkins/.ssh/game-key.pem"
     }
 
+ 
 
         stage('Build Frontend Image') {
             steps {
@@ -88,5 +89,5 @@ EOF
 '''
             }
         }
-    }
-}
+    } // closes stages
+} // closes pipeline
