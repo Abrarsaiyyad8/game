@@ -223,7 +223,7 @@
     const city = entryForm.querySelectorAll('input[type="text"]')[1].value; // second text input is city
 
     try {
-        const response = await fetch("http://43.205.216.241:3000/score", {
+        const response = await fetch("http://browser-backend:3000/score", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
