@@ -1,39 +1,65 @@
 import express from "express";
 import bodyParser from "body-parser";
+import cors from "cors";   // ✅ ADD THIS
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { PutCommand } from "@aws-sdk/lib-dynamodb";
 
 const app = express();
+
+/* ---------------- CORS FIX ---------------- */
+// Allow requests from nginx frontend
+app.use(cors({
+  origin: "*",   // allow all (for now)
+  methods: ["GET", "POST", "OPTIONS"],
+  allowedHeaders: ["Content-Type"]
+}));
+
+// Handle preflight requests (VERY IMPORTANT)
+app.options("*", cors());
+
+/* ------------------------------------------ */
+
 app.use(bodyParser.json());
 
-// AWS DynamoDB Client
+/* -------- AWS DynamoDB Client -------- */
 const client = new DynamoDBClient({
   region: "ap-south-1",
 });
 
-app.post("/save-user", async (req, res) => {
+/* -------- THIS ROUTE MUST MATCH FRONTEND -------- */
+/* Your frontend calls POST /score */
+app.post("/score", async (req, res) => {
   try {
-    const { name, email, city } = req.body;
+    console.log("Incoming Data:", req.body);
 
-    if (!name || !email || !city) {
+    const { userId, name, email, city, score } = req.body;
+
+    if (!userId || !name || !email || !city) {
       return res.status(400).json({ message: "Missing fields" });
     }
 
     const params = {
       TableName: "game-scores",
       Item: {
-        userId: Date.now().toString(),
-        name,
-        email,
-        city,
+        userId: userId,        // ✅ using your DynamoDB PK
+        name: name,
+        email: email,
+        city: city,
+        score: score || 0,
+        createdAt: new Date().toISOString(),
       },
     };
 
     await client.send(new PutCommand(params));
 
-    res.json({ message: "User saved successfully" });
+    console.log("Saved to DynamoDB");
+
+    res.status(200).json({
+      message: "User saved successfully"
+    });
+
   } catch (error) {
-    console.error("ERROR:", error);
+    console.error("DynamoDB ERROR:", error);
     res.status(500).json({
       message: "Internal Server Error",
       error: error.message,
@@ -41,6 +67,7 @@ app.post("/save-user", async (req, res) => {
   }
 });
 
+/* -------- Health Check -------- */
 app.get("/", (req, res) => {
   res.send("Game Backend Running 🚀");
 });
