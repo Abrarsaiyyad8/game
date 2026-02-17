@@ -215,15 +215,30 @@
         }, 4000);
 
         const entryForm = document.getElementById('entry-form');
-        entryForm.onsubmit = (e) => {
-            e.preventDefault();
-             window.location.href = "front_page.html"; 
-        };
-        
+        entryForm.onsubmit = async (e) => {
+    e.preventDefault();
 
-        window.addEventListener('mousedown', () => {
-            if (audioCtx.state === 'suspended') audioCtx.resume();
+    const name = entryForm.querySelector('input[type="text"]').value;
+    const email = entryForm.querySelector('input[type="email"]').value;
+    const city = entryForm.querySelectorAll('input[type="text"]')[1].value; // second text input is city
+
+    try {
+        const response = await fetch("http://43.205.216.241:3000/score", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ name, email, city })
         });
-    </script>
-</body>
-</html>
+
+        const data = await response.json();
+        console.log("Backend Response:", data);
+
+        // redirect after successful submission
+        window.location.href = "front_page.html"; 
+    } catch (err) {
+        console.error("Error sending data to backend:", err);
+        alert("Failed to submit data. Try again.");
+    }
+};
+
