@@ -15,8 +15,12 @@ pipeline {
         SSH_KEY    = "/var/lib/jenkins/.ssh/game-key.pem"
     }
 
-
-        // ---------------- FRONTEND BUILD ----------------
+    stages {
+        stage('Checkout Code') {
+            steps {
+                git 'https://github.com/Abrarsaiyyad8/game.git'
+            }
+        }
 
         stage('Build Frontend Image') {
             steps {
@@ -26,8 +30,6 @@ pipeline {
             }
         }
 
-        // ---------------- BACKEND BUILD ----------------
-
         stage('Build Backend Image') {
             steps {
                 dir('backend') {
@@ -35,8 +37,6 @@ pipeline {
                 }
             }
         }
-
-        // ---------------- LOGIN TO ECR ----------------
 
         stage('Login to ECR') {
             steps {
@@ -47,8 +47,6 @@ pipeline {
             }
         }
 
-        // ---------------- TAG IMAGES ----------------
-
         stage('Tag Images') {
             steps {
                 sh '''
@@ -58,8 +56,6 @@ pipeline {
             }
         }
 
-        // ---------------- PUSH IMAGES ----------------
-
         stage('Push Images to ECR') {
             steps {
                 sh '''
@@ -68,8 +64,6 @@ pipeline {
                 '''
             }
         }
-
-        // ---------------- DEPLOY ----------------
 
         stage('Deploy to App Server') {
             steps {
@@ -101,4 +95,4 @@ EOF
             }
         }
     }
-
+}
