@@ -11,7 +11,7 @@ pipeline {
         FRONTEND_URI = "${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${FRONTEND_REPO}"
         BACKEND_URI  = "${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${BACKEND_REPO}"
 
-        APP_SERVER = "ubuntu@43.205.215.216"
+        APP_SERVER = "ubuntu@13.232.229.201"
         SSH_KEY    = "/var/lib/jenkins/.ssh/game-key.pem"
     }
 
