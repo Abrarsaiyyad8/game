@@ -28,7 +28,24 @@ resource "aws_security_group" "game_sg" {
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
-
+ ingress {
+    from_port   = 9100
+    to_port     = 9100
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+ ingress {
+    from_port   = 9090
+    to_port     = 9090
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+ingress {
+    from_port   = 3001
+    to_port     = 3001
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
   egress {
     from_port   = 0
     to_port     = 0
@@ -66,5 +83,18 @@ resource "aws_instance" "app_server" {
   
   tags = {
     Name = "game-app-server"
+  }
+}
+
+
+resource "aws_instance" "monitoring" {
+  ami           = "ami-0f58b397bc5c1f2e8"
+  instance_type = "m7i-flex.large"
+  subnet_id     = aws_subnet.public_subnet.id
+   vpc_security_group_ids = [aws_security_group.game_sg.id]
+  key_name      = aws_key_pair.game_key.key_name
+
+  tags = {
+    Name = "monitoring-server"
   }
 }
