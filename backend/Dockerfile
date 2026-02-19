@@ -1,20 +1,20 @@
-# Use official Node image
-FROM node:24
+# Use lightweight Node image (MUCH smaller)
+FROM node:20-alpine
 
-# Set working directory inside container
+# Create app directory
 WORKDIR /backend
 
-# Copy package.json first (for caching)
-COPY package.json .
+# Copy only dependency files first (better caching)
+COPY package.json package-lock.json* ./
 
-# Install dependencies
-RUN npm install
+# Install only production dependencies
+RUN npm install --omit=dev
 
-# Copy remaining files
+# Copy remaining source code
 COPY . .
 
 # Expose backend port
 EXPOSE 3000
 
-# Start server
-CMD ["npm", "start"]
+# Start application
+CMD ["node", "server.js"]
